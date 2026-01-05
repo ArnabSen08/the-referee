@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Referee - Smart Decision Making Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .comparison-form {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .items-input {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .items-input input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .weights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .weight-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .weight-item label {
+            margin: 0;
+            flex: 1;
+        }
+
+        .weight-item input {
+            width: 80px;
+        }
+
+        .compare-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .compare-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .compare-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .recommendation {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .recommendation h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .confidence {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .confidence.high { background: #10b981; }
+        .confidence.medium { background: #f59e0b; }
+        .confidence.low { background: #ef4444; }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .option-card {
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .option-card.winner {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .option-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .option-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .option-score {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .pros, .cons {
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .pros {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+        }
+
+        .cons {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .pros h4, .cons h4 {
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .pros ul, .cons ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .pros li, .cons li {
+            padding: 2px 0;
+            font-size: 0.9rem;
+        }
+
+        .pros li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .cons li:before {
+            content: "✗ ";
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .best-for {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-top: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .example-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .items-input {
+                flex-direction: column;
+            }
+            
+            .pros-cons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 The Referee</h1>
+            <p>Smart comparison tool for making informed decisions</p>
+        </div>
+
+        <div class="comparison-form">
+            <form id="comparisonForm">
+                <div class="form-group">
+                    <label for="comparisonType">What would you like to compare?</label>
+                    <select id="comparisonType" required>
+                        <option value="">Select comparison type...</option>
+                        <option value="api">API Architectures (REST, GraphQL, gRPC)</option>
+                        <option value="cloud-service">Cloud Providers (AWS, Azure, GCP)</option>
+                        <option value="framework">Frontend Frameworks (React, Vue, Angular)</option>
+                        <option value="tech-stack">Tech Stacks (MEAN, MERN, Django)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Options to compare (enter 2-4 options):</label>
+                    <div class="items-input">
+                        <input type="text" id="item1" placeholder="Option 1" required>
+                        <input type="text" id="item2" placeholder="Option 2" required>
+                        <input type="text" id="item3" placeholder="Option 3 (optional)">
+                        <input type="text" id="item4" placeholder="Option 4 (optional)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Criteria Weights (1-5, higher = more important):</label>
+                    <div class="weights-grid" id="weightsGrid">
+                        <!-- Weights will be populated based on comparison type -->
+                    </div>
+                </div>
+
+                <button type="submit" class="compare-btn">
+                    🔍 Compare Options
+                </button>
+            </form>
+
+            <div class="examples">
+                <button class="example-btn" onclick="loadExample('api')">
+                    📡 API Example
+                </button>
+                <button class="example-btn" onclick="loadExample('cloud')">
+                    ☁️ Cloud Example
+                </button>
+                <button class="example-btn" onclick="loadExample('framework')">
+                    ⚛️ Framework Example
+                </button>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing options and calculating trade-offs...</p>
+            </div>
+            
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const criteriaMap = {
+            'api': ['performance', 'ease_of_use', 'documentation', 'cost', 'scalability', 'community'],
+            'cloud-service': ['cost', 'performance', 'reliability', 'features', 'support', 'integration'],
+            'framework': ['performance', 'bundle_size', 'learning_curve', 'community', 'job_opportunities', 'flexibility'],
+            'tech-stack': ['learning_curve', 'performance', 'ecosystem', 'job_market', 'maintenance', 'scalability']
+        };
+
+        const exampleData = {
+            api: {
+                type: 'api',
+                items: ['REST', 'GraphQL', 'gRPC'],
+                weights: { performance: 3, ease_of_use: 2, documentation: 2, scalability: 3 }
+            },
+            cloud: {
+                type: 'cloud-service',
+                items: ['AWS', 'Azure', 'GCP'],
+                weights: { cost: 4, performance: 3, reliability: 3, support: 2 }
+            },
+            framework: {
+                type: 'framework',
+                items: ['React', 'Vue', 'Angular'],
+                weights: { learning_curve: 3, performance: 2, job_opportunities: 2, community: 1 }
+            }
+        };
+
+        document.getElementById('comparisonType').addEventListener('change', function() {
+            updateWeightsGrid(this.value);
+        });
+
+        document.getElementById('comparisonForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await performComparison();
+        });
+
+        function updateWeightsGrid(type) {
+            const grid = document.getElementById('weightsGrid');
+            grid.innerHTML = '';
+            
+            if (type && criteriaMap[type]) {
+                criteriaMap[type].forEach(criterion => {
+                    const div = document.createElement('div');
+                    div.className = 'weight-item';
+                    div.innerHTML = `
+                        <label>${criterion.replace('_', ' ').toUpperCase()}</label>
+                        <input type="number" min="1" max="5" value="3" data-criterion="${criterion}">
+                    `;
+                    grid.appendChild(div);
+                });
+            }
+        }
+
+        function loadExample(type) {
+            const example = exampleData[type];
+            if (!example) return;
+
+            document.getElementById('comparisonType').value = example.type;
+            updateWeightsGrid(example.type);
+
+            example.items.forEach((item, index) => {
+                const input = document.getElementById(`item${index + 1}`);
+                if (input) input.value = item;
+            });
+
+            Object.entries(example.weights).forEach(([criterion, weight]) => {
+                const input = document.querySelector(`[data-criterion="${criterion}"]`);
+                if (input) input.value = weight;
+            });
+        }
+
+        async function performComparison() {
+            const type = document.getElementById('comparisonType').value;
+            const items = [
+                document.getElementById('item1').value,
+                document.getElementById('item2').value,
+                document.getElementById('item3').value,
+                document.getElementById('item4').value
+            ].filter(item => item.trim());
+
+            const weights = {};
+            document.querySelectorAll('[data-criterion]').forEach(input => {
+                weights[input.dataset.criterion] = parseInt(input.value);
+            });
+
+            if (items.length < 2) {
+                alert('Please enter at least 2 options to compare');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultsContent').style.display = 'none';
+
+            try {
+                const response = await fetch('/compare', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type,
+                        items,
+                        weights
+                    })
+                });
+
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error performing comparison. Please try again.');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayResults(result) {
+            const content = document.getElementById('resultsContent');
+            const recommendation = result.recommendation;
+            
+            let html = `
+                <div class="recommendation">
+                    <h3>🏆 Recommended: ${recommendation.recommended}</h3>
+                    <span class="confidence ${recommendation.confidence}">${recommendation.confidence.toUpperCase()} CONFIDENCE</span>
+                    <p style="margin-top: 15px;">${recommendation.reasoning}</p>
+                </div>
+
+                <div class="options-grid">
+            `;
+
+            result.results
+                .sort((a, b) => b.overallScore - a.overallScore)
+                .forEach((option, index) => {
+                    const isWinner = index === 0;
+                    html += `
+                        <div class="option-card ${isWinner ? 'winner' : ''}">
+                            <div class="option-header">
+                                <div class="option-name">
+                                    ${isWinner ? '🥇 ' : ''}${option.name}
+                                </div>
+                                <div class="option-score">
+                                    ${(option.overallScore * 100).toFixed(0)}%
+                                </div>
+                            </div>
+                            
+                            <div class="pros-cons">
+                                <div class="pros">
+                                    <h4>Pros</h4>
+                                    <ul>
+                                        ${option.pros.map(pro => `<li>${pro}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <div class="cons">
+                                    <h4>Cons</h4>
+                                    <ul>
+                                        ${option.cons.map(con => `<li>${con}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="best-for">
+                                <strong>Best for:</strong> ${option.bestFor}
+                            </div>
+                        </div>
+                    `;
+                });
+
+            html += '</div>';
+            
+            content.innerHTML = html;
+            content.style.display = 'block';
+        }
+
+        // Initialize with API comparison
+        updateWeightsGrid('api');
+    </script>
+</body>
+</html>

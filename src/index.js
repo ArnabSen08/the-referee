@@ -137,9 +137,17 @@ export class Referee {
    * Calculate weighted score based on criteria weights
    */
   calculateWeightedScore(scores, weights) {
-    const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0) || 1;
+    const scoreEntries = Object.entries(scores);
+    if (scoreEntries.length === 0) return 0;
     
-    return Object.entries(scores).reduce((total, [criterion, score]) => {
+    const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+    
+    if (totalWeight === 0) {
+      // Use equal weights when none provided
+      return scoreEntries.reduce((total, [_, score]) => total + score, 0) / scoreEntries.length;
+    }
+    
+    return scoreEntries.reduce((total, [criterion, score]) => {
       const weight = weights[criterion] || 1;
       return total + (score * weight / totalWeight);
     }, 0);
