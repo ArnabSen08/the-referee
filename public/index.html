@@ -370,6 +370,9 @@
                 <button class="example-btn" onclick="loadExample('framework')">
                     ⚛️ Framework Example
                 </button>
+                <a href="api-demo.html" class="example-btn" style="text-decoration: none; text-align: center; display: block;">
+                    🚀 Try Static Demo
+                </a>
             </div>
         </div>
 
@@ -477,27 +480,24 @@
             document.getElementById('loading').style.display = 'block';
             document.getElementById('resultsContent').style.display = 'none';
 
-            try {
-                const response = await fetch('/compare', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        type,
-                        items,
-                        weights
-                    })
-                });
-
-                const result = await response.json();
-                displayResults(result);
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error performing comparison. Please try again.');
-            } finally {
+            // Since this is a static site, show a message about the API demo
+            setTimeout(() => {
                 document.getElementById('loading').style.display = 'none';
-            }
+                document.getElementById('resultsContent').innerHTML = `
+                    <div style="text-align: center; padding: 40px; background: #f8fafc; border-radius: 10px;">
+                        <h3>🚀 API Demo Available</h3>
+                        <p style="margin: 20px 0;">This is the static version hosted on GitHub Pages.</p>
+                        <p style="margin: 20px 0;">For a working demo with pre-computed comparisons, try:</p>
+                        <a href="api-demo.html" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px;">
+                            Try Static Demo →
+                        </a>
+                        <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">
+                            To run the full API server locally, clone the repository and run <code>npm install && npm start</code>
+                        </p>
+                    </div>
+                `;
+                document.getElementById('resultsContent').style.display = 'block';
+            }, 1500);
         }
 
         function displayResults(result) {

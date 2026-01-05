@@ -20,9 +20,13 @@ The Referee is an intelligent decision-making assistant that:
 
 ## Quick Start
 
+### GitHub Pages Demo (Static)
+Visit the live demo: **https://arnabsen08.github.io/the-referee/**
+
+### Local Development (Full API)
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/the-referee.git
+git clone https://github.com/ArnabSen08/the-referee.git
 cd the-referee
 
 # Install dependencies
@@ -30,6 +34,8 @@ npm install
 
 # Start the development server
 npm run dev
+
+# Visit http://localhost:3000
 ```
 
 ## Usage Examples

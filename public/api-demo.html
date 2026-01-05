@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Referee - API Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .demo-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .demo-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .demo-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-item {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-score {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .pros-cons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .pros, .cons {
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .pros {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+        }
+
+        .cons {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .pros h4, .cons h4 {
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .pros ul, .cons ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .pros li, .cons li {
+            padding: 2px 0;
+            font-size: 0.9rem;
+        }
+
+        .pros li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .cons li:before {
+            content: "✗ ";
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .recommendation {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .confidence {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .confidence.high { background: #10b981; }
+        .confidence.medium { background: #f59e0b; }
+        .confidence.low { background: #ef4444; }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .pros-cons-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Main</a>
+        
+        <div class="header">
+            <h1>🏆 The Referee - API Demo</h1>
+            <p>Static demo with pre-computed comparisons</p>
+        </div>
+
+        <div class="demo-section">
+            <h2>Try Different Comparison Scenarios</h2>
+            <div class="demo-buttons">
+                <button class="demo-btn" onclick="showComparison('api')">
+                    📡 Compare APIs (REST vs GraphQL vs gRPC)
+                </button>
+                <button class="demo-btn" onclick="showComparison('cloud')">
+                    ☁️ Compare Cloud Services (AWS vs Azure vs GCP)
+                </button>
+                <button class="demo-btn" onclick="showComparison('framework')">
+                    ⚛️ Compare Frameworks (React vs Vue vs Angular)
+                </button>
+                <button class="demo-btn" onclick="showComparison('techstack')">
+                    🏗️ Compare Tech Stacks (MEAN vs MERN vs Django)
+                </button>
+            </div>
+
+            <div id="results" class="results">
+                <div id="loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Analyzing options...</p>
+                </div>
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const demoData = {
+            api: {
+                type: 'API Architectures',
+                recommendation: {
+                    recommended: 'GraphQL',
+                    confidence: 'medium',
+                    reasoning: 'GraphQL excels in flexibility and performance for modern applications, though it has a steeper learning curve than REST.'
+                },
+                results: [
+                    {
+                        name: 'GraphQL',
+                        overallScore: 0.82,
+                        pros: ['Single endpoint', 'Flexible queries', 'Strong typing', 'Real-time subscriptions'],
+                        cons: ['Learning curve', 'Caching complexity', 'Query complexity'],
+                        bestFor: 'Complex data relationships and mobile applications'
+                    },
+                    {
+                        name: 'gRPC',
+                        overallScore: 0.78,
+                        pros: ['High performance', 'Binary protocol', 'Streaming support', 'Language agnostic'],
+                        cons: ['Limited browser support', 'Debugging difficulty', 'Steep learning curve'],
+                        bestFor: 'Microservices and high-performance internal APIs'
+                    },
+                    {
+                        name: 'REST',
+                        overallScore: 0.75,
+                        pros: ['Simple and intuitive', 'Great caching support', 'Wide adoption', 'HTTP-based'],
+                        cons: ['Over-fetching data', 'Multiple endpoints', 'Versioning challenges'],
+                        bestFor: 'Simple CRUD operations and public APIs'
+                    }
+                ]
+            },
+            cloud: {
+                type: 'Cloud Providers',
+                recommendation: {
+                    recommended: 'AWS',
+                    confidence: 'high',
+                    reasoning: 'AWS offers the most comprehensive service portfolio and mature ecosystem, ideal for enterprise applications.'
+                },
+                results: [
+                    {
+                        name: 'AWS',
+                        overallScore: 0.85,
+                        pros: ['Largest service portfolio', 'Global infrastructure', 'Mature ecosystem', 'Market leader'],
+                        cons: ['Complex pricing', 'Steep learning curve', 'Can be expensive'],
+                        bestFor: 'Large-scale applications with diverse requirements'
+                    },
+                    {
+                        name: 'Azure',
+                        overallScore: 0.78,
+                        pros: ['Microsoft integration', 'Hybrid cloud support', 'Enterprise focus', 'Good pricing'],
+                        cons: ['Inconsistent UI', 'Service gaps', 'Windows-centric'],
+                        bestFor: 'Enterprise applications with Microsoft stack'
+                    },
+                    {
+                        name: 'GCP',
+                        overallScore: 0.72,
+                        pros: ['Competitive pricing', 'Strong AI/ML services', 'Kubernetes native', 'Simple pricing'],
+                        cons: ['Smaller ecosystem', 'Limited enterprise features', 'Fewer regions'],
+                        bestFor: 'Data analytics and machine learning workloads'
+                    }
+                ]
+            },
+            framework: {
+                type: 'Frontend Frameworks',
+                recommendation: {
+                    recommended: 'React',
+                    confidence: 'high',
+                    reasoning: 'React offers the best combination of ecosystem, job opportunities, and flexibility for most projects.'
+                },
+                results: [
+                    {
+                        name: 'React',
+                        overallScore: 0.88,
+                        pros: ['Large ecosystem', 'Job market leader', 'Flexibility', 'Meta backing'],
+                        cons: ['Rapid changes', 'JSX complexity', 'Tooling overhead'],
+                        bestFor: 'Complex applications with dynamic UIs'
+                    },
+                    {
+                        name: 'Vue',
+                        overallScore: 0.82,
+                        pros: ['Gentle learning curve', 'Great documentation', 'Progressive adoption', 'Small size'],
+                        cons: ['Smaller ecosystem', 'Fewer job opportunities', 'Single maintainer risk'],
+                        bestFor: 'Progressive enhancement and small to medium apps'
+                    },
+                    {
+                        name: 'Angular',
+                        overallScore: 0.75,
+                        pros: ['Full framework', 'TypeScript native', 'Enterprise ready', 'Google backing'],
+                        cons: ['Steep learning curve', 'Verbose syntax', 'Large bundle size'],
+                        bestFor: 'Large enterprise applications'
+                    }
+                ]
+            },
+            techstack: {
+                type: 'Technology Stacks',
+                recommendation: {
+                    recommended: 'MERN',
+                    confidence: 'medium',
+                    reasoning: 'MERN stack offers modern React ecosystem with strong job market and component reusability.'
+                },
+                results: [
+                    {
+                        name: 'MERN',
+                        overallScore: 0.83,
+                        pros: ['React popularity', 'Component reusability', 'Strong ecosystem', 'Modern approach'],
+                        cons: ['JSX learning curve', 'Rapid ecosystem changes', 'SEO challenges'],
+                        bestFor: 'Modern web applications with rich UIs'
+                    },
+                    {
+                        name: 'MEAN',
+                        overallScore: 0.76,
+                        pros: ['JavaScript everywhere', 'JSON throughout', 'Active community', 'Unified language'],
+                        cons: ['Angular complexity', 'Frequent updates', 'Performance concerns'],
+                        bestFor: 'Enterprise applications with complex requirements'
+                    },
+                    {
+                        name: 'Django',
+                        overallScore: 0.74,
+                        pros: ['Rapid development', 'Built-in admin', 'Security features', 'Python ecosystem'],
+                        cons: ['Monolithic structure', 'Python performance', 'Template limitations'],
+                        bestFor: 'Content-heavy websites and rapid prototyping'
+                    }
+                ]
+            }
+        };
+
+        function showComparison(type) {
+            const results = document.getElementById('results');
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('resultsContent');
+
+            // Show loading
+            results.classList.add('show');
+            loading.style.display = 'block';
+            content.innerHTML = '';
+
+            // Simulate API delay
+            setTimeout(() => {
+                loading.style.display = 'none';
+                displayResults(demoData[type]);
+            }, 1500);
+        }
+
+        function displayResults(data) {
+            const content = document.getElementById('resultsContent');
+            const recommendation = data.recommendation;
+            
+            let html = `
+                <div class="recommendation">
+                    <h3>🏆 Recommended: ${recommendation.recommended}</h3>
+                    <span class="confidence ${recommendation.confidence}">${recommendation.confidence.toUpperCase()} CONFIDENCE</span>
+                    <p style="margin-top: 15px;">${recommendation.reasoning}</p>
+                </div>
+            `;
+
+            data.results.forEach((option, index) => {
+                const isWinner = index === 0;
+                html += `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-name">
+                                ${isWinner ? '🥇 ' : ''}${option.name}
+                            </div>
+                            <div class="result-score">
+                                ${(option.overallScore * 100).toFixed(0)}%
+                            </div>
+                        </div>
+                        
+                        <div class="pros-cons-grid">
+                            <div class="pros">
+                                <h4>Pros</h4>
+                                <ul>
+                                    ${option.pros.map(pro => `<li>${pro}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="cons">
+                                <h4>Cons</h4>
+                                <ul>
+                                    ${option.cons.map(con => `<li>${con}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; margin-top: 15px;">
+                            <strong>Best for:</strong> ${option.bestFor}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
